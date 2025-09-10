@@ -15,12 +15,18 @@ export default function SearchBar({
   onSearch, 
   onClear, 
   isSearching, 
-  placeholder = "Search emojis by description..." 
+  placeholder = "Describe your emoji..." 
 }: SearchBarProps) {
   const [query, setQuery] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<NodeJS.Timeout>()
+  const isSearchingRef = useRef(false)
+
+  // Update search status ref
+  useEffect(() => {
+    isSearchingRef.current = isSearching
+  }, [isSearching])
 
   // Debounced search
   useEffect(() => {
@@ -61,7 +67,6 @@ export default function SearchBar({
         className={`
           relative flex items-center bg-white border rounded-lg transition-all duration-200
           ${isFocused ? 'border-blue-400 shadow-lg' : 'border-gray-300 shadow-sm'}
-          ${isSearching ? 'pointer-events-none opacity-75' : ''}
         `}
         whileFocus={{ scale: 1.02 }}
       >
@@ -79,11 +84,15 @@ export default function SearchBar({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onBlur={(e) => {
+            // Only blur if we're not searching and the focus isn't moving to a child element
+            if (!isSearchingRef.current && !e.currentTarget.contains(e.relatedTarget as Node)) {
+              setIsFocused(false)
+            }
+          }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="flex-1 py-3 px-2 text-gray-900 placeholder-gray-500 bg-transparent focus:outline-none"
-          disabled={isSearching}
           aria-label="Search emojis"
         />
 
@@ -100,39 +109,6 @@ export default function SearchBar({
           </motion.button>
         )}
       </motion.div>
-
-      {/* Search suggestions */}
-      {isFocused && !query && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10"
-        >
-          <div className="p-3 text-sm text-gray-500">
-            <p className="font-medium mb-2">Try searching for:</p>
-            <div className="space-y-1">
-              <button
-                onClick={() => setQuery('happy')}
-                className="block w-full text-left hover:text-blue-500 transition-colors"
-              >
-                "happy" - Find joyful emojis
-              </button>
-              <button
-                onClick={() => setQuery('food')}
-                className="block w-full text-left hover:text-blue-500 transition-colors"
-              >
-                "food" - Find food-related emojis
-              </button>
-              <button
-                onClick={() => setQuery('animals')}
-                className="block w-full text-left hover:text-blue-500 transition-colors"
-              >
-                "animals" - Find animal emojis
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      )}
     </div>
   )
 }

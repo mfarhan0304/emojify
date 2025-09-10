@@ -123,7 +123,7 @@ export default function Home() {
               Emojify
             </h1>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Upload a photo and watch it transform into a cute emoji with a playful description. 
+              Upload a photo and watch it transform into a cute emoji. 
               Join the real-time feed and discover emojis through semantic search!
             </p>
           </motion.div>
@@ -186,7 +186,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-gray-500 text-sm">
             <p>
-              Made with ❤️ by Farhan • Powered by Gemini AI and Supabase
+              Made by Farhan • Powered by Gemini AI and Supabase
             </p>
             <p className="mt-2">
               Photos are processed in-memory only and never stored
