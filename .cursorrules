@@ -1,0 +1,30 @@
+# Emojify Cursor Rules
+
+# Project context
+- Framework: Next.js 14 (App Router) + TypeScript
+- Styling: TailwindCSS + Framer Motion
+- Database: Supabase Postgres with pgvector
+- Realtime: Supabase Realtime (no Socket.IO)
+- AI: Gemini 2.5 Flash (for photo → emoji+description), Gemini text-embedding-004 (for embeddings)
+- Privacy: Uploaded photos must never be stored. Process in-memory only. 
+- Deployment: Frontend on Vercel, backend logic in Next.js API routes, DB in Supabase.
+
+# Implementation rules
+- Store only emoji (Unicode string), description (short text), and embedding (vector).
+- For search, always use pgvector cosine similarity via Supabase RPC.
+- Insert rows into `public.emoji` table using Supabase `SERVICE_ROLE_KEY`.
+- Clients may only subscribe (read); inserts are server-side only.
+- Real-time feed uses Supabase `postgres_changes` subscription.
+- Max upload size: 5MB; accept jpg/png/jpeg only.
+
+# Code style
+- Strict TypeScript with `zod` validation for API payloads.
+- Prefer functional React components with hooks.
+- Always mobile-first, responsive layout.
+- Components must be accessible (aria labels, keyboard navigation).
+- Use optimistic UI where possible (e.g., feed update after successful insert).
+
+# Non-goals
+- No persistent image storage in Supabase Storage.
+- No user accounts in v1.
+- No monetization logic in v1.

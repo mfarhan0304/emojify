@@ -1,0 +1,86 @@
+Product Name: Emojify
+Author: Farhan
+Date: September 10
+Version: 1.1
+
+⸻
+
+1. Overview
+
+Emojify is a responsive website (mobile + desktop) that allows users to upload a photo, which is instantly transformed into a cute emoji with a playful description. The original photo is never stored; only the emoji + description are saved in the database.
+
+Users can:
+	•	Upload photos → receive emoji + description.
+	•	See new emojis appear in a real-time feed powered by Supabase Realtime.
+	•	Search emojis using semantic similarity (Gemini embeddings + pgvector).
+	•	Enjoy fun UX elements (loading bar + celebration animation).
+
+⸻
+
+2. Goals & Non-Goals
+
+Goals
+	•	Lightweight, safe emoji generation.
+	•	Delightful UX (progress + confetti).
+	•	Global real-time feed.
+	•	Semantic search.
+
+Non-Goals
+	•	Photo editing (crop, filters).
+	•	User accounts in V1.
+	•	Monetization in V1.
+
+⸻
+
+3. Key Features
+
+Phase 1 – Core Emoji Generation
+	•	Upload one photo (max 5MB).
+	•	Processed with Gemini 2.5 Flash → outputs:
+	•	emoji: one Unicode emoji.
+	•	emoji can be copied to clipboard.
+	•	auto generated description: playful ≤120 char sentence.
+	•	Description embedded via Gemini text-embedding-004.
+	•	Data inserted into Supabase Postgres (emoji, description, embedding).
+
+Phase 2 – Delightful UX
+	•	Animated progress bar during processing.
+	•	Confetti celebration on success.
+
+Phase 3 – Real-Time Feed
+	•	Global feed (public.emoji table).
+	•	Updated instantly via Supabase Realtime (postgres_changes).
+	•	Emojis appear newest-first.
+
+Phase 4 – Semantic Search
+	•	Search bar accepts free-text query.
+	•	Query embedded with Gemini embeddings.
+	•	Search runs on pgvector cosine similarity (emoji_semantic_search RPC).
+	•	Results ranked by similarity score.
+
+⸻
+
+4. Technical Stack
+	•	Frontend: Next.js (App Router) + TypeScript + TailwindCSS + Framer Motion.
+	•	Backend: Next.js API routes (server actions).
+	•	Database: Supabase Postgres + pgvector.
+	•	Realtime: Supabase Realtime (subscriptions).
+	•	AI: Gemini 2.5 Flash (vision) + Gemini text-embedding-004 (embeddings).
+	•	Privacy: No photo storage (in-memory only).
+	•	Deployment: Vercel (frontend) + Supabase (backend/db).
+
+⸻
+
+5. Success Metrics
+	•	Avg emojis created per user.
+	•	Engagement with live feed.
+	•	Search queries/session.
+	•	Emoji diversity (categories of generated emojis).
+
+⸻
+
+6. Future Considerations
+	•	Private emoji collections (per user).
+	•	Share directly to WhatsApp/iMessage.
+	•	Gamification (badges, top creators).
+	•	Monetization (premium emoji packs).
