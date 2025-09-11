@@ -23,9 +23,9 @@ export const getSupabaseAdmin = () => {
 }
 
 // Database types
-export interface Emoji {
+export interface Sticker {
   id: string
-  emoji: string
+  sticker_url: string // URL to image in Supabase Storage
   description: string
   embedding: number[]
   created_at: string
@@ -35,9 +35,9 @@ export interface Database {
   public: {
     Tables: {
       emoji: {
-        Row: Emoji
-        Insert: Omit<Emoji, 'id' | 'created_at'>
-        Update: Partial<Omit<Emoji, 'id' | 'created_at'>>
+        Row: Sticker
+        Insert: Omit<Sticker, 'id' | 'created_at'>
+        Update: Partial<Omit<Sticker, 'id' | 'created_at'>>
       }
     }
     Functions: {
@@ -47,7 +47,7 @@ export interface Database {
           match_threshold: number
           match_count: number
         }
-        Returns: Array<Emoji & { similarity: number }>
+        Returns: Array<Sticker & { similarity: number }>
       }
     }
   }

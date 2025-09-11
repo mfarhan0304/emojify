@@ -25,18 +25,40 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Generate emoji and description using Gemini
-    const { emoji, description } = await generateEmojiFromImage(imageBuffer, mimeType)
+    // Generate sticker and description using Gemini
+    const { stickerBuffer, description } = await generateEmojiFromImage(imageBuffer, mimeType)
     
     // Generate embedding for the description
     const embedding = await generateEmbedding(description)
     
-    // Insert into database using service role
+    // Upload sticker to Supabase Storage
     const supabaseAdmin = getSupabaseAdmin()
+    const stickerId = crypto.randomUUID()
+    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+      .from('stickers')
+      .upload(`${stickerId}.png`, stickerBuffer, {
+        contentType: 'image/png',
+        cacheControl: '3600'
+      })
+    
+    if (uploadError) {
+      console.error('Storage upload error:', uploadError)
+      return NextResponse.json(
+        { error: 'Failed to upload sticker' },
+        { status: 500 }
+      )
+    }
+    
+    // Get public URL for the uploaded sticker
+    const { data: urlData } = supabaseAdmin.storage
+      .from('stickers')
+      .getPublicUrl(uploadData.path)
+    
+    // Insert into database using service role
     const { data, error } = await supabaseAdmin
       .from('emoji')
       .insert({
-        emoji,
+        sticker_url: urlData.publicUrl,
         description,
         embedding
       })
@@ -53,7 +75,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       success: true,
-      emoji: data
+      sticker: data
     })
     
   } catch (error) {

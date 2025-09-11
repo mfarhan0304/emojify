@@ -3,10 +3,10 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
-import { Emoji } from '@/lib/supabaseClient'
+import { Sticker } from '@/lib/supabaseClient'
 
 interface EmojiCardProps {
-  emoji: Emoji
+  emoji: Sticker
   similarity?: number
 }
 
@@ -15,7 +15,8 @@ export default function EmojiCard({ emoji, similarity }: EmojiCardProps) {
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(emoji.emoji)
+      // Copy the image URL to clipboard
+      await navigator.clipboard.writeText(emoji.sticker_url)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
@@ -31,14 +32,19 @@ export default function EmojiCard({ emoji, similarity }: EmojiCardProps) {
       whileTap={{ scale: 0.95 }}
       onClick={copyToClipboard}
     >
-      {/* Emoji */}
-      <div className="text-center flex flex-col items-center justify-center">
-        <div className="text-4xl">{emoji.emoji}</div>
+      {/* Sticker */}
+      <div className="text-center flex flex-col items-center justify-center w-full h-full">
+        <img 
+          src={emoji.sticker_url} 
+          alt={emoji.description}
+          className="w-full h-full object-contain rounded-lg"
+          loading="lazy"
+        />
         
         {/* Similarity indicator for search results */}
         {similarity && (
-          <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full inline-block">
-            {Math.round(similarity * 100)}% match
+          <div className="absolute top-1 right-1 text-xs text-gray-500 bg-white bg-opacity-90 px-1 py-0.5 rounded text-center">
+            {Math.round(similarity * 100)}%
           </div>
         )}
       </div>

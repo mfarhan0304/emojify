@@ -5,13 +5,13 @@ import { motion } from 'framer-motion'
 import UploadCard from '@/components/UploadCard'
 import SearchBar from '@/components/SearchBar'
 import LiveFeed from '@/components/LiveFeed'
-import { Emoji } from '@/lib/supabaseClient'
+import { Sticker } from '@/lib/supabaseClient'
 
 export default function Home() {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<Array<Emoji & { similarity?: number }>>([])
+  const [searchResults, setSearchResults] = useState<Array<Sticker & { similarity?: number }>>([])
   const [isSearching, setIsSearching] = useState(false)
 
   const handleUpload = async (file: File) => {

@@ -25,10 +25,10 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 }
 
 /**
- * Generate emoji and description from image using Gemini 2.5 Flash
+ * Generate social media sticker concept and description from image using Gemini 1.5 Flash
  */
 export async function generateEmojiFromImage(imageBuffer: Buffer, mimeType: string): Promise<{
-  emoji: string
+  stickerBuffer: Buffer
   description: string
 }> {
   try {
@@ -37,14 +37,16 @@ export async function generateEmojiFromImage(imageBuffer: Buffer, mimeType: stri
     // Convert buffer to base64
     const base64Image = imageBuffer.toString('base64')
     
-    const prompt = `Analyze this image and generate:
-1. A single Unicode emoji that best represents the main subject or emotion in the image
-2. A playful, creative description (max 50 characters) that captures what's happening in the image
+    const prompt = `Analyze this image and create a social media animation sticker concept that best represents the main subject, activity, outfit, and emotion in the image.
+
+Create a concept for an animated sticker/photo that would be perfect for sharing on social media platforms like Instagram, TikTok, or WhatsApp chat sections with transparent background. The sticker should mimic the style of the apple emoji. Don't add anything that's not in the image.
+
+IMPORTANT: Generate an actual image (not just a description) that represents the sticker concept. The image should be a PNG with transparent background, 200x200 pixels, in the style of Apple emojis.
 
 Return your response in this exact JSON format:
 {
-  "emoji": "🎯",
-  "description": "A fun description here"
+  "sticker": "base64 image here",
+  "description": "A description here that only contains text (50 characters or less)"
 }`
 
     const result = await model.generateContent([
@@ -59,6 +61,8 @@ Return your response in this exact JSON format:
 
     const response = await result.response
     const text = response.text()
+
+    console.log('Response:', text)
     
     // Parse JSON response
     const jsonMatch = text.match(/\{[\s\S]*\}/)
@@ -68,14 +72,18 @@ Return your response in this exact JSON format:
     
     const parsed = JSON.parse(jsonMatch[0])
     
-    if (!parsed.emoji || !parsed.description) {
+    if (!parsed.sticker || !parsed.description) {
       throw new Error('Invalid response format from Gemini')
     }
     
-    // Validate emoji is a single Unicode character
-    if (parsed.emoji.length > 2) {
-      throw new Error('Response must be a single emoji character')
+    // Validate sticker is base64 data
+    if (!parsed.sticker.startsWith('data:image/png;base64,')) {
+      throw new Error('Response must contain valid base64 PNG image data')
     }
+    
+    // Convert base64 to buffer
+    const base64Data = parsed.sticker.split(',')[1] // Remove data:image/png;base64, prefix
+    const stickerBuffer = Buffer.from(base64Data, 'base64')
     
     // Validate description length
     if (parsed.description.length > 120) {
@@ -83,11 +91,11 @@ Return your response in this exact JSON format:
     }
     
     return {
-      emoji: parsed.emoji,
+      stickerBuffer,
       description: parsed.description
     }
   } catch (error) {
-    console.error('Error generating emoji from image:', error)
-    throw new Error('Failed to generate emoji from image')
+    console.error('Error generating sticker concept from image:', error)
+    throw new Error('Failed to generate sticker concept from image')
   }
 }

@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
     
     // Generate embedding for the search query
     const queryEmbedding = await generateEmbedding(validatedQuery)
+    console.log('Query embedding:', queryEmbedding)
     
     // Search using pgvector RPC function
     const { data, error } = await supabase.rpc('emoji_semantic_search', {

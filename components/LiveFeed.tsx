@@ -2,21 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { supabase, Emoji } from '@/lib/supabaseClient'
+import { supabase, Sticker } from '@/lib/supabaseClient'
 import EmojiCard from './EmojiCard'
 
 interface LiveFeedProps {
   searchQuery?: string
-  searchResults?: Array<Emoji & { similarity?: number }>
+  searchResults?: Array<Sticker & { similarity?: number }>
   isSearching?: boolean
 }
 
 export default function LiveFeed({ searchQuery, searchResults, isSearching }: LiveFeedProps) {
-  const [emojis, setEmojis] = useState<Emoji[]>([])
+  const [emojis, setEmojis] = useState<Sticker[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [realtimeStatus, setRealtimeStatus] = useState<string>('Connecting...')
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
   // Load initial emojis
   useEffect(() => {
@@ -43,23 +41,21 @@ export default function LiveFeed({ searchQuery, searchResults, isSearching }: Li
           table: 'emoji'
         },
         (payload) => {
-          console.log('🎉 New emoji received via real-time:', payload.new)
-          const newEmoji = payload.new as Emoji
-          setLastUpdate(new Date())
+          console.log('🎉 New sticker received via real-time:', payload.new)
+          const newSticker = payload.new as Sticker
           setEmojis(prev => {
-            // Check if emoji already exists to avoid duplicates
-            const exists = prev.some(e => e.id === newEmoji.id)
+            // Check if sticker already exists to avoid duplicates
+            const exists = prev.some(e => e.id === newSticker.id)
             if (exists) {
-              console.log('Emoji already exists, skipping duplicate')
+              console.log('Sticker already exists, skipping duplicate')
               return prev
             }
-            return [newEmoji, ...prev]
+            return [newSticker, ...prev]
           })
         }
       )
       .subscribe((status) => {
         console.log('Real-time subscription status:', status)
-        setRealtimeStatus(status)
         if (status === 'SUBSCRIBED') {
           console.log('✅ Successfully subscribed to emoji feed')
         } else if (status === 'CHANNEL_ERROR') {
@@ -125,26 +121,6 @@ export default function LiveFeed({ searchQuery, searchResults, isSearching }: Li
           {searchQuery ? `Search Results (${displayEmojis.length})` : 'Live Feed'}
         </h2>
         <div className="flex items-center space-x-4">
-          {/* Real-time status indicator */}
-          {!searchQuery && (
-            <div className="flex items-center space-x-2 text-xs">
-              <div className={`w-2 h-2 rounded-full ${
-                realtimeStatus === 'SUBSCRIBED' ? 'bg-green-500' : 
-                realtimeStatus === 'CHANNEL_ERROR' ? 'bg-red-500' : 
-                'bg-yellow-500'
-              }`}></div>
-              <span className="text-gray-500">
-                {realtimeStatus === 'SUBSCRIBED' ? 'Live' : 
-                 realtimeStatus === 'CHANNEL_ERROR' ? 'Error' : 
-                 'Connecting...'}
-              </span>
-              {lastUpdate && (
-                <span className="text-gray-400">
-                  • Last update: {lastUpdate.toLocaleTimeString()}
-                </span>
-              )}
-            </div>
-          )}
           {isSearching && (
             <div className="flex items-center space-x-2 text-blue-500">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
