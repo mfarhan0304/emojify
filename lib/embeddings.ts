@@ -1,23 +1,27 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenAI } from '@google/genai'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-
-// Initialize the embedding model
-const embeddingModel = genAI.getGenerativeModel({ model: 'text-embedding-004' })
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY!
+})
 
 /**
  * Generate embedding for text using Gemini text-embedding-004
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
   try {
-    const result = await embeddingModel.embedContent(text)
-    const embedding = result.embedding
+    const result = await ai.models.embedContent({
+      model: 'text-embedding-001',
+      contents: text,
+      config: {
+        taskType: 'SEMANTIC_SIMILARITY'
+      }
+    })
     
-    if (!embedding || !Array.isArray(embedding.values)) {
+    if (!result.embeddings || !Array.isArray(result.embeddings.values)) {
       throw new Error('Invalid embedding response from Gemini')
     }
     
-    return embedding.values
+    return result.embeddings[0].values || []
   } catch (error) {
     console.error('Error generating embedding:', error)
     throw new Error('Failed to generate embedding')
@@ -25,23 +29,19 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 }
 
 /**
- * Generate social media sticker concept and description from image using Gemini 1.5 Flash
+ * Generate social media sticker concept and description from image using Gemini 2.0 Flash
  */
 export async function generateEmojiFromImage(imageBuffer: Buffer, mimeType: string): Promise<{
   stickerBuffer: Buffer
   description: string
 }> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-    
     // Convert buffer to base64
     const base64Image = imageBuffer.toString('base64')
     
-    const prompt = `Analyze this image and create a social media animation sticker concept that best represents the main subject, activity, outfit, and emotion in the image.
-
-Create a concept for an animated sticker/photo that would be perfect for sharing on social media platforms like Instagram, TikTok, or WhatsApp chat sections with transparent background. The sticker should mimic the style of the apple emoji. Don't add anything that's not in the image.
-
-IMPORTANT: Generate an actual image (not just a description) that represents the sticker concept. The image should be a PNG with transparent background, 200x200 pixels, in the style of Apple emojis.
+    const prompt = `Analyze this image and create a social media emoji concept that best represents the main subject, activity, outfit, and emotion in the image.
+Don't add anything that's not in the image.
+IMPORTANT: Generate an actual image (not just a description) that represents the sticker concept. The image should be a PNG with transparent background, 100x100 pixels, in the style of Apple emojis.
 
 Return your response in this exact JSON format:
 {
@@ -49,23 +49,25 @@ Return your response in this exact JSON format:
   "description": "A description here that only contains text (50 characters or less)"
 }`
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          data: base64Image,
-          mimeType: mimeType
+    const result = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        {
+          text: prompt
+        },
+        {
+          inlineData: {
+            data: base64Image,
+            mimeType: mimeType
+          }
         }
-      }
-    ])
+      ]
+    })
 
-    const response = await result.response
-    const text = response.text()
-
-    console.log('Response:', text)
+    console.log('Response:', result.text)
     
     // Parse JSON response
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
+    const jsonMatch = result.text?.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
       throw new Error('No valid JSON found in response')
     }
